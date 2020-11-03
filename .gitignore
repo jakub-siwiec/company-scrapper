@@ -1,0 +1,3 @@
+chromedriver
+.pytest_cache/
+.vscode/
