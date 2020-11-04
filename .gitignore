@@ -1,3 +1,6 @@
 chromedriver
 .pytest_cache/
 .vscode/
+*.xlsx
+.env
+hunter.py
