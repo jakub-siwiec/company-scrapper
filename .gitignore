@@ -3,4 +3,4 @@ chromedriver
 .vscode/
 *.xlsx
 .env
-hunter.py
+__pycache__/
