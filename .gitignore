@@ -2,5 +2,6 @@ chromedriver
 .pytest_cache/
 .vscode/
 *.xlsx
+*.csv
 .env
 __pycache__/
