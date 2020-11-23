@@ -10,6 +10,8 @@ import time
 
 class Linkedin:
     def __init__(self):
+        """LinkedIn session object
+        """
         self.PATH = "./chromedriver"
         self.FILE = config("LINKEDIN_CSV_FILE_OUTPUT")
         self.csv_sep = "$"
