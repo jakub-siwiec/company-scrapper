@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 
-class Domain:
+class Googlesearch:
     def __init__(self):
         self.PATH = "./chromedriver"
         self.driver = webdriver.Chrome(self.PATH)
@@ -14,15 +14,8 @@ class Domain:
         self.search_company = "Google search"
 
         # ACTION
-        # time.sleep(5)
+        time.sleep(3)
         self._close_google_privacy_modal()
-        self.search("Goldman Sachs")
-        # self.search("ufrh3u834832ruy3yy23h")
-        self.get_website_link()
-        b = self._get_search_results()
-        c = self._convert_search_results_to_dict(b)
-        print(c)
-        a = input("hehehe")
 
     def _close_google_privacy_modal(self):
         """Close initial Google privacy modal window
@@ -35,7 +28,7 @@ class Domain:
                 (By.XPATH, "//*[@id='introAgreeButton']/span"))
         ).click()
 
-    def search(self, search_phrase):
+    def _search(self, search_phrase):
         """Search initial page or later one
 
         Args:
@@ -58,6 +51,20 @@ class Domain:
             body.send_keys(Keys.PAGE_DOWN)
         time.sleep(2)
 
+    def _paginate(self):
+        """Paginate to the next page
+
+        Returns:
+            boolean: True if paginated, False if there was no next pagination button and didn't paginate
+        """
+        try:
+            next_button = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.ID, "pnnext")))
+            next_button.click()
+            return True
+        except:
+            return False
+
     def _button_link(self):
         """Get the link to the button of the website (my chromedriver browser is in Polish, change "Strona" for your language)
 
@@ -76,8 +83,8 @@ class Domain:
 
         return None
 
-    def _get_search_results(self):
-        """Get all the results in the page for particular search
+    def _get_lite_search_results(self):
+        """Get all the results in the page for particular search in the form of titles and links
 
         Returns:
             list: list of selenium objects. None if no results
@@ -90,7 +97,16 @@ class Domain:
         except:
             return None
 
-    def _convert_search_results_to_dict(self, full_results_list):
+    def _get_full_search_results(self):
+        try:
+            self._scroll_to_bottom()
+            full_results_list = WebDriverWait(self.driver, 5).until(
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "g")))
+            return full_results_list
+        except:
+            return None
+
+    def _convert_lite_search_results_to_dict(self, full_results_list):
         """Converts results to a list of dictionaries
 
         Args:
@@ -113,13 +129,44 @@ class Domain:
         else:
             return None
 
+    def get_search_results(self, search_phrase, pages=1):
+        """Search a phrase and get it's results in the form of dictionary
+
+        Args:
+            search_phrase (string): search phrase to insert in Google search bar. Don't need to be Google start page
+            pages (int, optional): Number of pages to handle. Defaults to 1.
+
+        Returns:
+            dictionary: dictionary of results with titles and links
+        """
+
+        search_results = {
+            "search-phrase": search_phrase,
+            "search-result-list": []
+        }
+
+        self._search(search_phrase)
+
+        for page in range(0, pages):
+            result_temp = self._get_lite_search_results()
+            result = self._convert_lite_search_results_to_dict(result_temp)
+            search_results["search-result-list"].extend(result)
+            if page < pages - 1:
+                if self._paginate() == False:
+                    break
+
+        return search_results
+
     def get_website_link(self):
+        """Get link to the company website
+
+        Returns:
+            string: Link to the website
+        """
         button_link = self._button_link()
-        print(button_link)
+        return button_link
 
     def close(self):
+        """Close Selenium driver
+        """
         self.driver.close()
-
-
-x = Domain()
-x.close()

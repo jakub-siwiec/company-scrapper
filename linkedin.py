@@ -60,9 +60,6 @@ class Linkedin:
 
     def _scroll_to_bottom(self):
         """Scrolls the page to the bottom by pressing down key.
-
-        Returns:
-            [type]: [description]
         """
         body = self.driver.find_element_by_css_selector('body')
         while self.driver.execute_script('return ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2);') == False:
