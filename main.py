@@ -76,15 +76,31 @@ def linkedin_company_main():
     linkedin_session.close()
 
 
-def search_linkedin_address():
-    google_session = Linkedinaddress()
-    df = pd.read_excel(config('COMPANY_NAME_XLSX_FILE_INPUT'), index_col=0)
+def _get_linkedin_address(google_session, df_companies):
+    """Get Linkedin addresses for the companies from the list. They can require cleaning the data (e.g. because of duplicates for various languages). It has to have column Name with companies' names.
+
+    Args:
+        google_session (object): Linkedinaddress object.
+        df_companies (dataframe): Pandas DataFrame with the list of companies with their names.
+
+    Returns:
+        dataframe: Pandas DataFrame with companies' names and LinkedIn addresses
+    """
     df_output = pd.DataFrame(columns=["Name", "Linkedin"])
-    for index, row in df.iterrows():
+    for index, row in df_companies.iterrows():
         name = row["Name"]
         linkedin = google_session.get_linkedin_address(row["Name"])
         for address in linkedin:
             df_output = df_output.append(
                 {"Name": name, "Linkedin": address}, ignore_index=True)
+    return df_output
+
+
+def search_linkedin_address():
+    """Search for LinkedIn addresses for data from Excel spreadsheet. It has to have column Name with companies' names.
+    """
+    google_session = Linkedinaddress()
+    df = pd.read_excel(config('COMPANY_NAME_XLSX_FILE_INPUT'), index_col=0)
+    df_output = _get_linkedin_address(google_session, df)
     df_output.to_excel(config('COMPANY_NAME_XLSX_FILE_OUTPUT'))
     google_session.close_googlesearch()
