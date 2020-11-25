@@ -2,6 +2,7 @@ import pandas as pd
 from rocketreach import Rocketreach
 from hunter import Hunter
 from linkedinsearch import Linkedinsearch
+from linkedinaddress import Linkedinaddress
 from decouple import config
 
 
@@ -16,7 +17,7 @@ def email_hunter(domain_name):
     return [results["email_pattern"], results["email_list"]]
 
 
-def populate_hunter(df):
+def _populate_hunter(df):
     df[["Email Pattern", "Emails"]] = df.apply(
         lambda x: email_hunter(x["Domain"]), axis=1, result_type="expand")
     return df
@@ -26,12 +27,12 @@ def hunter_main():
     """Main function to search for emails.
     """
     df = pd.read_excel(config('HUNTER_XLSX_FILE_INPUT'), index_col=0)
-    df = populate_hunter(df)
+    df = _populate_hunter(df)
     print(df)
     df.to_excel(config('HUNTER_XLSX_FILE_OUTPUT'))
 
 
-def people_search_linkedin(linkedin_session_object, company_name):
+def _people_search_linkedin(linkedin_session_object, company_name):
     """Search phrase on LinkedIn, scrap results and save to csv.
 
     Args:
@@ -47,12 +48,12 @@ def linkedin_search_main():
     """
     linkedin_session = Linkedinsearch()
     df = pd.read_excel(config('LINKEDIN_XLSX_FILE_INPUT'), index_col=0)
-    df["Name"].apply(lambda name: people_search_linkedin(
+    df["Name"].apply(lambda name: _people_search_linkedin(
         linkedin_session, name))
     linkedin_session.close()
 
 
-def people_company_linkedin(linkedin_session_object, company_name, linkedin_company_url):
+def _people_company_linkedin(linkedin_session_object, company_name, linkedin_company_url):
     """Scraps people who are listed on the company's Linkedin site.
 
     Args:
@@ -70,6 +71,20 @@ def linkedin_company_main():
     """
     linkedin_session = Linkedinsearch()
     df = pd.read_excel(config('LINKEDIN_XLSX_FILE_INPUT'), index_col=0)
-    df.apply(lambda x: people_company_linkedin(
+    df.apply(lambda x: _people_company_linkedin(
         linkedin_session, x["Name"], x["Linkedin"]), axis=1)
     linkedin_session.close()
+
+
+def search_linkedin_address():
+    google_session = Linkedinaddress()
+    df = pd.read_excel(config('COMPANY_NAME_XLSX_FILE_INPUT'), index_col=0)
+    df_output = pd.DataFrame(columns=["Name", "Linkedin"])
+    for index, row in df.iterrows():
+        name = row["Name"]
+        linkedin = google_session.get_linkedin_address(row["Name"])
+        for address in linkedin:
+            df_output = df_output.append(
+                {"Name": name, "Linkedin": address}, ignore_index=True)
+    df_output.to_excel(config('COMPANY_NAME_XLSX_FILE_OUTPUT'))
+    google_session.close_googlesearch()
