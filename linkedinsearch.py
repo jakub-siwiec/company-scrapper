@@ -8,15 +8,26 @@ import pandas as pd
 import time
 
 
-class Linkedin:
+class Linkedinsearch:
     def __init__(self):
-        """LinkedIn session object
+        """LinkedIn session object.
+
+        The procedure:
+
+        1. You initiate the object (it opens the browser, login to Linkedin, create csv file etc.).
+        2. You insert the company's name in the Linkedin search with search method/You go to the list of people signed with the company with company_people_list method.
+        3. You scrap the results with scrap/scrap_and_update_csv method. If you choose the former one you want to save the result in a certain way (to csv or another way with e.g. get_result).
+        4. Close driver.
         """
         self.PATH = "./chromedriver"
-        self.FILE = config("LINKEDIN_CSV_FILE_OUTPUT")
+        idx = config("LINKEDIN_CSV_FILE_OUTPUT").index(".csv")
+        timestring = time.strftime("%Y%m%d%H%M%S")
+        self.FILE = config("LINKEDIN_CSV_FILE_OUTPUT")[
+            :idx] + timestring + config("LINKEDIN_CSV_FILE_OUTPUT")[idx:]
         self.csv_sep = "$"
         self.driver = webdriver.Chrome(self.PATH)
         self.results = []
+        self.pagination_max = 5
         self.pagination_session = 0
         self.column_names = ["Name", 'Company',
                              "Description", "Location", "Link"]
@@ -24,12 +35,12 @@ class Linkedin:
         self.password = config('LINKEDIN_PASSWORD')
 
         self._create_csv()
-        self.driver.get("https://www.linkedin.com/login")
         self._login()
 
     def _login(self):
         """Logins to Linkedin
         """
+        self.driver.get("https://www.linkedin.com/login")
         username_field = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.ID, "username")))
         password_field = WebDriverWait(self.driver, 10).until(
@@ -47,16 +58,52 @@ class Linkedin:
 
         Args:
             search_company (string): Name of the company to search.
+
+        Returns:
+            boolean: True if there is it proceeded to the search list, False if it didn't.
         """
         self.results.append({
             "company": search_company,
             "list": []
         })
-        search_field = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
-            (By.XPATH, "//div[@id='global-nav-search']//input[@aria-label='Search']")))
-        search_field.clear()
-        search_field.send_keys(search_company)
-        search_field.send_keys(Keys.ENTER)
+        try:
+            search_field = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(
+                (By.XPATH, "//div[@id='global-nav-search']//input[@aria-label='Search']")))
+            search_field.clear()
+            search_field.send_keys(search_company)
+            search_field.send_keys(Keys.ENTER)
+            return True
+        except:
+            return False
+
+    def company_people_list(self, search_company, company_linkedin_page):
+        """Gets the list of people currently working in the company through LinkedIn company page.
+
+        Args:
+            search_company (string): Name of the company to search.
+            company_linkedin_page (string): Full company LinkedIn address of the format https://www.linkedin.com/company/[company-user-name]/.
+
+        Returns:
+            boolean: True if there is it proceeded to the list, False if it didn't.
+        """
+        self.results.append({
+            "company": search_company,
+            "list": []
+        })
+        self.driver.get(company_linkedin_page)
+        try:
+            link_people_list = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "employees on LinkedIn")))
+            link_people_list.click()
+            return True
+        except:
+            try:
+                link_people_list = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "employee on LinkedIn")))
+                link_people_list.click()
+                return True
+            except:
+                return False
 
     def _scroll_to_bottom(self):
         """Scrolls the page to the bottom by pressing down key.
@@ -81,7 +128,7 @@ class Linkedin:
         Returns:
             boolean: True continue, false discontinue
         """
-        if self.pagination_session < 5:
+        if self.pagination_session < self.pagination_max:
             return True
         else:
             return False
@@ -157,22 +204,6 @@ class Linkedin:
 
             self.results[-1]["list"].append(profile_object)
 
-    def scrap(self):
-        """Scraps the data paginating in the meantime and saves it.
-        """
-        time.sleep(5)
-        while True:
-            try:
-                self._scroll_to_bottom()
-                result_page_items = self._get_page_data()
-                self._unpack_page_data(result_page_items)
-                click_next_page = self._paginate()
-                if click_next_page == False:
-                    break
-            except:
-                break
-        self.update_csv()
-
     def get_results(self):
         """Get results.
 
@@ -182,6 +213,11 @@ class Linkedin:
         return self.results
 
     def get_last_to_df(self):
+        """Creates an output form in the form of columns in a particular order with the particular information.
+
+        Returns:
+            Dataframe: Pandas dataframe object.
+        """
         list_dict_to_df = []
         for item in self.results[-1]["list"]:
             dict_to_df = {}
@@ -211,6 +247,27 @@ class Linkedin:
         """
         df = self.get_last_to_df()
         self._save_to_csv(df)
+
+    def scrap(self):
+        """Scraps the data paginating.
+        """
+        time.sleep(5)
+        while True:
+            try:
+                self._scroll_to_bottom()
+                result_page_items = self._get_page_data()
+                self._unpack_page_data(result_page_items)
+                click_next_page = self._paginate()
+                if click_next_page == False:
+                    break
+            except:
+                break
+
+    def scrap_and_update_csv(self):
+        """Scraps the data paginating in the meantime and saves it.
+        """
+        self.scrap()
+        self.update_csv()
 
     def close(self):
         """Closes the selenium session.

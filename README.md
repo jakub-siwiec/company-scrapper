@@ -67,9 +67,12 @@ It is a toolset for Google. For example, it can copy all the search results with
 
 Uses Hunter API to populate list of the companies with their email patterns and emails that appear in hunter.io database.
 
-**linkedin.py**
+**linkedinsearch.py**
 
-Scraps results from LinkedIn search. If you insert the company name in the LinkedIn search you will get the results in which most of them will be people connected with that company. There can be current employees or past employees.
+Scraps results from LinkedIn. There are two possible options to get the data.
+
+1. You scrap people profiles through LinkedIn search. If you insert the company name in the LinkedIn search you will get the results. Most of them will be people connected with that company. There can be current employees or past employees. This is also a good way to discover similar companies.
+2. You know the company's LinkedIn profile address and scrap people's profiles from their LinkedIn site. These are the people who are currently signed to the company.
 
 **rocketreach.py**
 
