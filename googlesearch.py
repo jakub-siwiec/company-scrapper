@@ -133,8 +133,8 @@ class Googlesearch:
         """Search a phrase and get it's results in the form of dictionary
 
         Args:
-            search_phrase (string): search phrase to insert in Google search bar. Don't need to be Google start page
-            pages (int, optional): Number of pages to handle. Defaults to 1.
+            search_phrase (string): Search phrase to insert in Google search bar. Don't need to be Google start page.
+            pages (int, optional): Number of pages (pagination) to handle. Defaults to 1.
 
         Returns:
             dictionary: dictionary of results with titles and links
@@ -166,7 +166,50 @@ class Googlesearch:
         button_link = self._button_link()
         return button_link
 
+    def get_full_page_in_text(self, search_phrase, pages=1):
+        """Search for an item, paginate if you wish and get the text from the search results.
+
+        Args:
+            search_phrase (string): Search phrase to insert in Google search bar. Don't need to be Google start page.
+            pages (int, optional): Number of pages (pagination) to handle. Defaults to 1.
+
+        Returns:
+            string: Text from all the pages paginated.
+        """
+        result_text = ""
+        self._search(search_phrase)
+        for page in range(0, pages):
+            self._scroll_to_bottom()
+            site_html = self.driver.find_element_by_tag_name("html")
+            result_text += site_html.text
+            if page < pages - 1:
+                if self._paginate() == False:
+                    break
+
+        return result_text
+
+    def get_page_source(self, search_phrase, pages=1):
+        """Search for an item, paginate if you wish and get the source of all pages in the form of the text (it also includes JavaScript files).
+
+        Args:
+            search_phrase (string): Search phrase to insert in Google search bar. Don't need to be Google start page.
+            pages (int, optional): Number of pages (pagination) to handle. Defaults to 1.
+
+        Returns:
+            string: Text of cource code of all the pages.
+        """
+        page_source_string = ""
+        self._search(search_phrase)
+        for page in range(0, pages):
+            self._scroll_to_bottom()
+            page_source_string += self.driver.page_source
+            if page < pages - 1:
+                if self._paginate() == False:
+                    break
+
+        return page_source_string
+
     def close(self):
         """Close Selenium driver
         """
-        self.driver.close()
+        self.driver.quit()

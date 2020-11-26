@@ -21,7 +21,7 @@ class Rocketreach:
         self.results = self._print_google_rocketreach_results(
             self._get_all_google_page_results())
 
-        self.driver.close()
+        self.driver.quit()
 
     def _close_google_privacy_modal(self):
         """Close initial Google privacy modal window

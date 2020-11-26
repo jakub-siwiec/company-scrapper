@@ -272,4 +272,4 @@ class Linkedinsearch:
     def close(self):
         """Closes the selenium session.
         """
-        self.driver.close()
+        self.driver.quit()
