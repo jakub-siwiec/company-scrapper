@@ -78,6 +78,14 @@ Scraps results from LinkedIn. There are two possible options to get the data.
 
 Searching for LinkedIn addresses using googlesearch.py. You input the name and the app searches for LinkedIn addresses in search results. There can be some duplicates (e.g. different LinkedIn country codes) because I decided to go with all the addresses that appear in the results rather than the first ones, so the data may require cleaning.
 
+**sitecrawler.py**
+
+Gets links which are in the site.
+
+**linkedinwebsite.py**
+
+Gets company's website url from their LinkedIn profile page.
+
 **rocketreach.py**
 
 Scraps rocketreach email patterns from Google search results.
