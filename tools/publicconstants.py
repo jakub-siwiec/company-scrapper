@@ -1,0 +1,2 @@
+FIXES_TO_DELETE = [", Assoc. (CIPD)", ", Assoc CIPD", ", Assoc. CIPD", " Assoc. CIPD", " Assoc CIPD", ", CIPD", " CIPD", ", Assoc.", " Assoc.", ", Assoc", " Assoc",  ", BA(Hons)", " BA(Hons)", ", APFS", " APFS", ", DipPFS", " DipPFS", ", ACII", " ACCI", " (ACII)", ", FRM", " FRM", ", FCCA", ", MFin, Dipl. Ing.", ", MFin", ", Dipl. Ing.", ", CFA", " CFA", ", PhD", ", CPA",
+                   ", CRP", ", SGMS-T", ", CRP, SGMS-T", ", CA", ", CA-CPA", ", JD", ", CISSP", ", JD-MBA-CISSP", ", MBA", ", ACCA", " MBA", " ACCA"]

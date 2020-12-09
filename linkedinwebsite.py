@@ -39,15 +39,28 @@ class Linkedinwebsite:
         """
         self.driver.get(linkedin_company_profile_url)
 
-    def _copy_website_link(self):
+    def _copy_button_website_link(self):
         """Copies website link from company's profile page if the link exists.
 
         Returns:
-            string: Website url. None if no website url.
+            string or None: Website url. None if no website url.
         """
         try:
             link = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "Visit website")))
+            return link.get_attribute("href")
+        except:
+            return None
+
+    def _copy_details_website_link(self):
+        """Get address from details of the website if visible.
+
+        Returns:
+            string oe None: Website url. None if no website url.
+        """
+        try:
+            link = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "http")))
             return link.get_attribute("href")
         except:
             return None
@@ -62,7 +75,10 @@ class Linkedinwebsite:
             string: Website url. None if no website url.
         """
         self._go_company_site(linkedin_company_profile_url)
-        return self._copy_website_link()
+        res = self._copy_button_website_link()
+        if res is None:
+            res = self._copy_details_website_link()
+        return res
 
     def close(self):
         """Quits selenium session

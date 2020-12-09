@@ -90,7 +90,11 @@ class Linkedinsearch:
             "company": search_company,
             "list": []
         })
-        self.driver.get(company_linkedin_page)
+        forbidden_list = ["", "nan", "Nan", "NaN", None]
+        if (search_company != search_company or company_linkedin_page != company_linkedin_page or search_company in forbidden_list or company_linkedin_page in forbidden_list):
+            return False
+        else:
+            self.driver.get(company_linkedin_page)
         try:
             link_people_list = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "employees on LinkedIn")))

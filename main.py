@@ -1,23 +1,37 @@
 import pandas as pd
-from rocketreach import Rocketreach
 from hunter import Hunter
 from linkedinsearch import Linkedinsearch
 from linkedinaddress import Linkedinaddress
+from linkedinwebsite import Linkedinwebsite
+from googlemail import Googlemail
+from websitemail import get_website_emails
+from tools.outputfilenamegenerator import generate_name
 from decouple import config
 
 
-def email_rocketreach(name):
-    search = Rocketreach(name)
-    return search.get_results()
-
-
 def email_hunter(domain_name):
+    """Get email pattern and email list from hunter.io using their API.
+
+    Args:
+        domain_name (string): Domain name without prefix,, but with suffix. No signs such as "/".
+
+    Returns:
+        list: List of lists, the first item is email pattern list, the second item is email list that appeared in the search.
+    """
     search = Hunter(domain_name)
     results = search.get_results()
     return [results["email_pattern"], results["email_list"]]
 
 
 def _populate_hunter(df):
+    """Takes a DataFrame and adds two additional columns with results from Hunter.io (email pattern and email list).
+
+    Args:
+        df (DataFrame): DataFrame with the list of companies and the column called "Domain" with domains.
+
+    Returns:
+        DataFrame: Pandas DataFrame with the column with the results.
+    """
     df[["Email Pattern", "Emails"]] = df.apply(
         lambda x: email_hunter(x["Domain"]), axis=1, result_type="expand")
     return df
@@ -29,7 +43,7 @@ def hunter_main():
     df = pd.read_excel(config('HUNTER_XLSX_FILE_INPUT'), index_col=0)
     df = _populate_hunter(df)
     print(df)
-    df.to_excel(config('HUNTER_XLSX_FILE_OUTPUT'))
+    df.to_excel(generate_name(config('HUNTER_XLSX_FILE_OUTPUT')))
 
 
 def _people_search_linkedin(linkedin_session_object, company_name):
@@ -100,7 +114,82 @@ def search_linkedin_address():
     """Search for LinkedIn addresses for data from Excel spreadsheet. It has to have column Name with companies' names.
     """
     google_session = Linkedinaddress()
-    df = pd.read_excel(config('COMPANY_NAME_XLSX_FILE_INPUT'), index_col=0)
+    df = pd.read_excel(config('COMPANY_NAME_XLSX_FILE_INPUT'),
+                       index_col=None, header=0)
     df_output = _get_linkedin_address(google_session, df)
-    df_output.to_excel(config('COMPANY_NAME_XLSX_FILE_OUTPUT'))
+    df_output.to_excel(generate_name(config('COMPANY_NAME_XLSX_FILE_OUTPUT')))
     google_session.close_googlesearch()
+
+
+def _get_website_link_from_linkedin(linkedin_session, linkedin_address):
+    """Gets website link from LinkedIn company page.
+
+    Args:
+        linkedin_session (Linkedinwebsite object): Linkedinwebsite object with an open session in selenium.
+        linkedin_address (string): Url address of LinkedIn website of the company.
+
+    Returns:
+        string: Company's website link. If didn't find then returns None.
+    """
+    if linkedin_address == linkedin_address and isinstance(linkedin_address, str):
+        try:
+            return linkedin_session.get_website_link(linkedin_address)
+        except:
+            return None
+    else:
+        return None
+
+
+def search_website_on_linkedin():
+    """Search for website addresses of the companies from Excel file with LinkedIn address (in "Linkedin" column). Returns the results to the file.
+    """
+    linkedin_session = Linkedinwebsite()
+    df = pd.read_excel(config('COMPANY_NAME_LINKEDIN_XLSX_FILE_INPUT'),
+                       index_col=None, header=0)
+    df["Website"] = df.apply(lambda address: _get_website_link_from_linkedin(linkedin_session, address["Linkedin"]),
+                             axis=1)
+    df.to_excel(generate_name(
+        config('COMPANY_NAME_LINKEDIN_XLSX_FILE_OUTPUT')))
+    linkedin_session.close()
+
+
+def _emails_retriever(google_session, name):
+    """Retrieves emails from the results of a specific query in Google.
+
+    Args:
+        google_session (Googlemail object): Google session in selenium.
+        name (string): Query (company) to search. Additional keywords will be added to the search to increase the efficiency.
+
+    Returns:
+        list: List of results or empty string.
+    """
+    results = google_session.find_emails(name)
+    if len(results) > 0:
+        print(results)
+        return results
+    else:
+        return ""
+
+
+def get_emails_from_google():
+    """Get emails from Google search
+    """
+    google_session = Googlemail()
+    df = pd.read_excel(config('COMPANY_NAME_GOOGLE_EMAIL_XLSX_FILE_INPUT'),
+                       index_col=None, header=0)
+    df["Email"] = df.apply(lambda table: _emails_retriever(
+        google_session, table["Name"]), axis=1)
+    df.to_excel(generate_name(
+        config('COMPANY_NAME_GOOGLE_EMAIL_FILE_OUTPUT')))
+    google_session.close()
+
+
+def get_emails_from_websites():
+    """Get emails from website using extract_emails package
+    """
+    df = pd.read_excel(config('COMPANY_NAME_WEBSITE_EMAIL_XLSX_FILE_INPUT'),
+                       index_col=None, header=0)
+    df["EmailWeb"] = df.apply(
+        lambda table: get_website_emails(table["Website"]), axis=1)
+    df.to_excel(generate_name(
+        config('COMPANY_NAME_WEBSITE_EMAIL_FILE_OUTPUT')))

@@ -5,3 +5,5 @@ chromedriver
 *.csv
 .env
 __pycache__/
+.ipynb_checkpoints/
+privateconstants.py
