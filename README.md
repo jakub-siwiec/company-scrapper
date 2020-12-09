@@ -68,7 +68,7 @@ Before presenting capabilities of the apps, I would like to mention that I didn'
 
 **main.py**
 
-Imports files and databases to actually make work with the toolset.
+Imports files and databases to actually make work with the toolset. Use this file to conduct the operations on databases. Most of the things can be done by one simple function from main.py.
 
 **googlesearch.py**
 
@@ -207,3 +207,7 @@ Thanks to ipysheet and some functions the work should go very fast. In this file
 9. Final preparation for email mass sending with email-mass-sender
 
 Copying, pasting and separating text to columns. The data is ready.
+
+## Final notes
+
+This app could also be edited and used for many business purposes, however it's built only for education purposes. You bear the responsibility for how you use it.
