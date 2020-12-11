@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import ipysheet
-from publicconstants import FIXES_TO_DELETE
-from privateconstants import OUTPUT_COLUMN_LIST, EMAIL_TEMPLATE_HR, EMAIL_TEMPLATE_VARIABLES
+from .publicconstants import FIXES_TO_DELETE
+from .privateconstants import OUTPUT_COLUMN_LIST, EMAIL_TEMPLATE_HR, EMAIL_TEMPLATE_VARIABLES
 
 # private constants:
 # OUTPUT_COLUMN_LIST - the list of names of the columns in the final output
